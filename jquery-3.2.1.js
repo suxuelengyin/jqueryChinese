@@ -13,10 +13,10 @@
  */
 //自执行匿名函数，参数1：如果Window不是未定义就传入window，如果未定义就是this，参数2：jq主体构造函数
 (function (global, factory) {
-    // 严格模式
+	// 严格模式
 	"use strict";
 	// 此时的global是window或this对象，factory是jq对象（jq主体最后返回的是jq对象）
-    // 自执行立即判断是否存在commonJs运行环境
+	// 自执行立即判断是否存在commonJs运行环境
 	if (typeof module === "object" && typeof module.exports === "object") {
 		// 如果存在，判断环境是否支持window.document属性，支持则将jq功能函数集合直接扩展到node.js里面
 		// 如果不支持该属性，抛出错误：jq需要支持window.document，再返回jq对象。
@@ -45,31 +45,30 @@
 	var slice = arr.slice;
 	//定义数组的contact方法 
 	var concat = arr.concat;
-
+	//数组的push方法
 	var push = arr.push;
-
+	//数组的元素查找方法
 	var indexOf = arr.indexOf;				//对常用方法的重新定义
-
+	//正常定义一个对象
 	var class2type = {};
-
+	//该对象的toString方法
 	var toString = class2type.toString;
-
+	//该对象的查找自有属性方法
 	var hasOwn = class2type.hasOwnProperty;
-
+	//作为一个函数对象，也拥有toString方法
 	var fnToString = hasOwn.toString;
-
+	//函数对象的tostring方法
 	var ObjectFunctionString = fnToString.call(Object);
-
+	//声明了对象
 	var support = {};
 
 
 	// DOMEval方法。创建script标签，包含指定代码。
 	function DOMEval(code, doc) {
 		doc = doc || document;
-
 		var script = doc.createElement("script");
-
 		script.text = code;
+		//将标签添加到head里面 并且移除head的父节点body的js标签
 		doc.head.appendChild(script).parentNode.removeChild(script);
 	}
 	/* global Symbol */
@@ -104,26 +103,27 @@
 		fcamelCase = function (all, letter) {
 			return letter.toUpperCase();
 		};
-		// 为jq对象添加固有属性方法，定义jquery.fn就是jq对象的pro属性
+	// 为jq对象的原型对象，定义jquery.fn就是jq对象的原型
 	jQuery.fn = jQuery.prototype = {
 
 		// The current version of jQuery being used
 		// jq版本
 		jquery: version,
-		// 创建此对象的数组函数的引用
+		// 创建此对象的数组函数的引用，修正constructor
 		constructor: jQuery,
 
 		// The default length of a jQuery object is 0
 		// $.length 
+		//jq的length属性,一般表示jq选择器的元素个数jq.length即可调用
 		length: 0,
-		// call方法实现将对象转换为数组
+		// call方法实现将类数组转换为数组（slice已被声明为[].slice）
 		toArray: function () {
 			return slice.call(this);
 		},
 
 		// Get the Nth element in the matched element set OR
 		// Get the whole matched element set as a clean array
-		// get方法，空数值则返回this本身（数组形式），小于0倒着数。大于等于0直接返回对应索引项
+		// get方法，空对象则返回this本身（数组形式），小于0倒着数。大于等于0直接返回对应索引项(jq选择器的get方法，返回jsdom对象)
 		get: function (num) {
 
 			// Return all the elements in a clean array
@@ -137,12 +137,13 @@
 
 		// Take an array of elements and push it onto the stack
 		// (returning the new matched element set)
-		// pushStack方法，将jq对象与新元素连接，并将原jq对象返回给this，返回ret（新jq对象）
+		// pushStack压栈方法，将参数jq对象与空jq对象连接，并将原jq对象放在新对象的preObject属性中，返回ret（新jq对象）
+		//a.pushStack(b),返回newb，newb.prevobject=a
 		pushStack: function (elems) {
 
 			// Build a new jQuery matched element set
-			// 建立新jq对象
-			var ret = jQuery.merge(this.constructor(), elems);
+			// 建立新jq对象，merge方法详见412行代码
+			var ret = jQuery.merge(this.constructor(), elems);//this.constructor()相当于$()，空jq对象
 
 			// Add the old object onto the stack (as a reference)
 			// 给新的jq对象添加prevObject属性，指向原jq对象
@@ -154,36 +155,36 @@
 		},
 
 		// Execute a callback for every element in the matched set.
-		// each（回调函数），返回jq each方法
+		// jq原型each（回调函数），返回jq each方法
 		each: function (callback) {
 			return jQuery.each(this, callback);
 		},
-		// map方法，传入回调函数，
+		// jq原型map方法，传入回调函数，
 		map: function (callback) {
 			return this.pushStack(jQuery.map(this, function (elem, i) {
 				// elem
 				return callback.call(elem, i, elem);
 			}));
 		},
-
+		//
 		slice: function () {
 			return this.pushStack(slice.apply(this, arguments));
 		},
-
+		//首项
 		first: function () {
 			return this.eq(0);
 		},
-
+		//尾项
 		last: function () {
 			return this.eq(-1);
 		},
-
+		//eq选择指定jq对象元素集合中的指定dom元素，
 		eq: function (i) {
 			var len = this.length,
 				j = +i + (i < 0 ? len : 0);
 			return this.pushStack(j >= 0 && j < len ? [this[j]] : []);
 		},
-
+		//返回jq的前置对象
 		end: function () {
 			return this.prevObject || this.constructor();
 		},
@@ -194,8 +195,9 @@
 		sort: arr.sort,
 		splice: arr.splice
 	};
-
+	//jq最重要的原型方法jQuery.prototype.extend
 	jQuery.extend = jQuery.fn.extend = function () {
+		//声明一些常用的变量，target是参数首项或者空对象。deep拷贝深度
 		var options, name, src, copy, copyIsArray, clone,
 			target = arguments[0] || {},
 			i = 1,
@@ -203,44 +205,53 @@
 			deep = false;
 
 		// Handle a deep copy situation
+		//参数1：拷贝深度true或者false
 		if (typeof target === "boolean") {
 			deep = target;
 
 			// Skip the boolean and the target
+			//target变为参数2，即接收者
 			target = arguments[i] || {};
-			i++;
+			i++;//跳过参数1（深浅拷贝）和参数2（要接收拷贝的对象）
 		}
 
 		// Handle case when target is a string or something (possible in deep copy)
+		//参数2如果不是对象并且不是函数就转换为空对象
 		if (typeof target !== "object" && !jQuery.isFunction(target)) {
 			target = {};
 		}
 
 		// Extend jQuery itself if only one argument is passed
+		//参数是不是只有一个，是则跳过循环，拷贝参数至少需要两个
 		if (i === length) {
 			target = this;
 			i--;
 		}
-
+		//拷贝多个参数对象（参数3......）
+		//i=2
 		for (; i < length; i++) {
 
 			// Only deal with non-null/undefined values
+			//不是null才会继续执行，
+			//options变为要拷贝的对象，target为接收者
 			if ((options = arguments[i]) != null) {
-
 				// Extend the base object
+				//in操作符遍历参数对象的属性
 				for (name in options) {
-					src = target[name];
-					copy = options[name];
+					src = target[name];//src为接收者target的属性名
+					copy = options[name];//copy为被拷贝者options的属性名
 
 					// Prevent never-ending loop
+					//如果target的属性名已经和copy的一致，则跳过本次循环 
 					if (target === copy) {
 						continue;
 					}
 
 					// Recurse if we're merging plain objects or arrays
+					//参数1是深拷贝并且被拷贝的对象存在，同时copy是没有原型对象的普通对象 或者  copy是数组对象（数组对象有原型），才会往下执行
 					if (deep && copy && (jQuery.isPlainObject(copy) ||
 						(copyIsArray = Array.isArray(copy)))) {
-
+						//如果是数组对象，src（接收者的属性名）也是数组对象，clone就为src
 						if (copyIsArray) {
 							copyIsArray = false;
 							clone = src && Array.isArray(src) ? src : [];
@@ -299,19 +310,20 @@
 				// subtraction forces infinities to NaN
 				!isNaN(obj - parseFloat(obj));
 		},
-
+		//判断是不是普通对象（没有原型的）
 		isPlainObject: function (obj) {
 			var proto, Ctor;
-
 			// Detect obvious negatives
 			// Use toString instead of jQuery.type to catch host objects
+			//不存在或者不能转换为字符串[object Object]就返回false（对象转字符串就是这个结果）
 			if (!obj || toString.call(obj) !== "[object Object]") {
 				return false;
 			}
-
+			//getProto已被重新声明，就是Object.getPrototypeOf()获取原型属性
 			proto = getProto(obj);
 
 			// Objects with no prototype (e.g., `Object.create( null )`) are plain
+			//没有原型，返回true
 			if (!proto) {
 				return true;
 			}
@@ -408,9 +420,9 @@
 
 		// Support: Android <=4.0 only, PhantomJS 1 only
 		// push.apply(_, arraylike) throws on ancient WebKit
-		// merge方法，将参数2数组添加到参数1后面，返回参数1
+		// merge方法，将参数2添加到参数1后面，返回参数1(参数可以是jq对象或数组)
 		merge: function (first, second) {
-			var len = +second.length,
+			var len = +second.length,//+的作用就是Number()
 				j = 0,
 				i = first.length;
 
