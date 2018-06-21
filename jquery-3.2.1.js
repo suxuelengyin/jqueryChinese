@@ -95,7 +95,9 @@
 		rtrim = /^[\s\uFEFF\xA0]+|[\s\uFEFF\xA0]+$/g,
 
 		// Matches dashed string for camelizing
+		//匹配-ms-
 		rmsPrefix = /^-ms-/,
+		//匹配a-z
 		rdashAlpha = /-([a-z])/g,
 
 		// Used by jQuery.camelCase as callback to replace()
@@ -195,9 +197,9 @@
 		sort: arr.sort,
 		splice: arr.splice
 	};
-	//jq最重要的原型方法jQuery.prototype.extend
+	//jq重要的原型方法jQuery.prototype.extend
 	jQuery.extend = jQuery.fn.extend = function () {
-		//声明一些常用的变量，target是参数首项或者空对象。deep拷贝深度
+		//声明一些常用的变量，target是参数首项或者空对象。deep合并深度
 		var options, name, src, copy, copyIsArray, clone,
 			target = arguments[0] || {},
 			i = 1,
@@ -205,7 +207,7 @@
 			deep = false;
 
 		// Handle a deep copy situation
-		//参数1：拷贝深度true或者false
+		//参数1：合并深度true或者false
 		if (typeof target === "boolean") {
 			deep = target;
 
@@ -222,24 +224,24 @@
 		}
 
 		// Extend jQuery itself if only one argument is passed
-		//参数是不是只有一个，是则跳过循环，拷贝参数至少需要两个
+		//如果参数只有一个，target就是jq对象本身（$.extend(),this指向$），对jq进行扩充，
 		if (i === length) {
 			target = this;
 			i--;
 		}
-		//拷贝多个参数对象（参数3......）
-		//i=2
+		//合并多个参数对象（参数3......）
+		//i=2||0
 		for (; i < length; i++) {
 
 			// Only deal with non-null/undefined values
 			//不是null才会继续执行，
-			//options变为要拷贝的对象，target为接收者
+			//options变为要被合并的对象，target为接收者
 			if ((options = arguments[i]) != null) {
 				// Extend the base object
 				//in操作符遍历参数对象的属性
 				for (name in options) {
-					src = target[name];//src为接收者target的属性名
-					copy = options[name];//copy为被拷贝者options的属性名
+					src = target[name];//src为接收者target的属性名（检测tar和op是不是有相同的属性）
+					copy = options[name];//copy为被合并者options的属性名
 
 					// Prevent never-ending loop
 					//如果target的属性名已经和copy的一致，则跳过本次循环 
@@ -248,55 +250,59 @@
 					}
 
 					// Recurse if we're merging plain objects or arrays
-					//参数1是深拷贝并且被拷贝的对象存在，同时copy是没有原型对象的普通对象 或者  copy是数组对象（数组对象有原型），才会往下执行
+					//参数1是深度合并，并且被合并对象属性存在，该属性是一个普通对象或者数组，就要深度合并
 					if (deep && copy && (jQuery.isPlainObject(copy) ||
 						(copyIsArray = Array.isArray(copy)))) {
-						//如果是数组对象，src（接收者的属性名）也是数组对象，clone就为src
+						//如果该属性是数组，就把该属性（或者[]）赋值给clone
 						if (copyIsArray) {
 							copyIsArray = false;
 							clone = src && Array.isArray(src) ? src : [];
 
 						} else {
+							//如果不是数组，src存在且为普通对象，clone则为src（否则{}）
 							clone = src && jQuery.isPlainObject(src) ? src : {};
 						}
 
 						// Never move original objects, clone them
+						//clone此时为数组对象或者普通对象（[]或者{}），对目标对象的属性再次调用$.extend()
 						target[name] = jQuery.extend(deep, clone, copy);
-
 						// Don't bring in undefined values
 					} else if (copy !== undefined) {
+						//无特殊情况，浅合并即可
 						target[name] = copy;
 					}
 				}
 			}
 		}
-
+		//返回合并后的对象
 		// Return the modified object
 		return target;
 	};
-
+	//extend只有一个参数，扩展jq对象本身
 	jQuery.extend({
 
 		// Unique for each copy of jQuery on the page
+		//jq扩展标记，匹配非数字（\D非数字）并用空来代替，即产生一个随机数并去掉.
 		expando: "jQuery" + (version + Math.random()).replace(/\D/g, ""),
 
 		// Assume jQuery is ready without the ready module
+		//jq是否准备好
 		isReady: true,
-
+		//抛出错误函数
 		error: function (msg) {
 			throw new Error(msg);
 		},
-
+		//空函数
 		noop: function () { },
-
+		//是否为函数
 		isFunction: function (obj) {
 			return jQuery.type(obj) === "function";
 		},
-
+		//obj是否为window对象（默认情况下，window.window=window ）
 		isWindow: function (obj) {
 			return obj != null && obj === obj.window;
 		},
-
+		//obj是否为数值
 		isNumeric: function (obj) {
 
 			// As of jQuery 3.0, isNumeric is limited to
@@ -310,7 +316,7 @@
 				// subtraction forces infinities to NaN
 				!isNaN(obj - parseFloat(obj));
 		},
-		//判断是不是普通对象（没有原型的）
+		//判断是不是普通对象（没有原型属性的）
 		isPlainObject: function (obj) {
 			var proto, Ctor;
 			// Detect obvious negatives
@@ -332,7 +338,7 @@
 			Ctor = hasOwn.call(proto, "constructor") && proto.constructor;
 			return typeof Ctor === "function" && fnToString.call(Ctor) === ObjectFunctionString;
 		},
-
+		//obj是不是空对象
 		isEmptyObject: function (obj) {
 
 			/* eslint-disable no-unused-vars */
@@ -344,19 +350,21 @@
 			}
 			return true;
 		},
-
+		//判断obj的类型，null为""
 		type: function (obj) {
 			if (obj == null) {
 				return obj + "";
 			}
 
 			// Support: Android <=2.3 only (functionish RegExp)
+			//{}.toString.call（obj）返回[object class]class是number，function，string......
 			return typeof obj === "object" || typeof obj === "function" ?
 				class2type[toString.call(obj)] || "object" :
 				typeof obj;
 		},
 
 		// Evaluates a script in a global context
+		//js标签提前
 		globalEval: function (code) {
 			DOMEval(code);
 		},
@@ -364,10 +372,11 @@
 		// Convert dashed to camelCase; used by the css and data modules
 		// Support: IE <=9 - 11, Edge 12 - 13
 		// Microsoft forgot to hump their vendor prefix (#9572)
+		//匹配-ms-用ms-替代，然后匹配a-z转换为大写
 		camelCase: function (string) {
 			return string.replace(rmsPrefix, "ms-").replace(rdashAlpha, fcamelCase);
 		},
-
+		//each迭代，对象和数组均可迭代，
 		each: function (obj, callback) {
 			var length, i = 0;
 
@@ -390,6 +399,7 @@
 		},
 
 		// Support: Android <=4.0 only
+		//去空格
 		trim: function (text) {
 			return text == null ?
 				"" :
@@ -397,6 +407,7 @@
 		},
 
 		// results is for internal usage only
+		//
 		makeArray: function (arr, results) {
 			var ret = results || [];
 
