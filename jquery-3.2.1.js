@@ -376,7 +376,7 @@
 		camelCase: function (string) {
 			return string.replace(rmsPrefix, "ms-").replace(rdashAlpha, fcamelCase);
 		},
-		//each迭代，对象和数组均可迭代，
+		//each迭代，对象和数组均可迭代，回调函数的参数为，value值，index索引？
 		each: function (obj, callback) {
 			var length, i = 0;
 
@@ -407,12 +407,12 @@
 		},
 
 		// results is for internal usage only
-		//
+		//制造数组，并添加到指定数组中
 		makeArray: function (arr, results) {
 			var ret = results || [];
 
 			if (arr != null) {
-				if (isArrayLike(Object(arr))) {
+				if (isArrayLike(Object(arr))) {//object([])的结果还是数组，再判断是不是类数组，类数组同样可以merge
 					jQuery.merge(ret,
 						typeof arr === "string" ?
 							[arr] : arr
@@ -424,7 +424,7 @@
 
 			return ret;
 		},
-
+		//判断数组元素的索引
 		inArray: function (elem, arr, i) {
 			return arr == null ? -1 : indexOf.call(arr, elem, i);
 		},
@@ -445,7 +445,7 @@
 
 			return first;
 		},
-
+		//对ele元素的每一项执行回调函数，该回调函数返回布尔值，返回能够得到想要结果的元素数组组合（就是筛选）
 		grep: function (elems, callback, invert) {
 			var callbackInverse,
 				matches = [],
@@ -466,6 +466,7 @@
 		},
 
 		// arg is for internal usage only
+		//重写map方法，可对对象的属性进行类似的处理，返回新的数组，不修改原数组
 		map: function (elems, callback, arg) {
 			var length, value,
 				i = 0,
@@ -498,13 +499,14 @@
 		},
 
 		// A global GUID counter for objects
+		//全局计数君
 		guid: 1,
 
 		// Bind a function to a context, optionally partially applying any
 		// arguments.
 		proxy: function (fn, context) {
 			var tmp, args, proxy;
-
+			//proxy(obj,property)调用，context是字符串，那他必须是fn的属性，简单调换一下参数位置
 			if (typeof context === "string") {
 				tmp = fn[context];
 				context = fn;
@@ -513,55 +515,78 @@
 
 			// Quick check to determine if target is callable, in the spec
 			// this throws a TypeError, but we will just return undefined.
+			//context又不是字符串，fn又不是函数，当然返回undefined啦
 			if (!jQuery.isFunction(fn)) {
 				return undefined;
 			}
 
 			// Simulated bind
+			//此时。fn就是想要改变函数作用域的对象，context是目标作用域
+			//第一步，把预缓存的参数（slice(2)从第三个参数开始）转换为数组（apply方法需要数组的啦）
 			args = slice.call(arguments, 2);
+			//设定返回值proxy，对fn调用apply，作用域变成context或者this（context不存在的时候就不做任何改变），
+			//fn的传入参数变为两部分，第一部分是args预先缓存的参数，第二部分是slice.call(arguments)，再次调用时传入的参数
+			//两类参数组合形成新数组传入fn
 			proxy = function () {
 				return fn.apply(context || this, args.concat(slice.call(arguments)));
 			};
 
 			// Set the guid of unique handler to the same of original handler, so it can be removed
 			proxy.guid = fn.guid = fn.guid || jQuery.guid++;
-
+			//返回处理过的新函数
 			return proxy;
 		},
+		//给该函数对象加了个时间属性？？
 
 		now: Date.now,
 
 		// jQuery.support is not used in Core but other projects attach their
 		// properties to it so it needs to exist.
+		//又加了一个support属性？？？
 		support: support
-	});
-
+	});//扩展结束
+	//Symbol是ES6新定义的第七种数据类型，表示独一无二的值，用以消除魔术字符串再好好不过
+	//Symbol.iterator指向对象的默认遍历器（支持的话）
 	if (typeof Symbol === "function") {
 		jQuery.fn[Symbol.iterator] = arr[Symbol.iterator];
 	}
 
 	// Populate the class2type map
+	//字符串迭代，对class2type对象赋予属性与值
+	/*遍历之后的class2type对象
+	{
+		"[object Array]": "array"
+		"[object Boolean]": "boolean"
+		"[object Date]": "date"
+		"[object Function]": "function"
+		"[object Number]": "number"
+		"[object Object]": "object"
+		"[object RegExp]": "regexp"
+		"[object String]": "string"
+	 }*/
 	jQuery.each("Boolean Number String Function Array Date RegExp Object Error Symbol".split(" "),
 		function (i, name) {
 			class2type["[object " + name + "]"] = name.toLowerCase();
 		});
-
+	//是不是类数组
 	function isArrayLike(obj) {
 
 		// Support: real iOS 8.2 only (not reproducible in simulator)
 		// `in` check used to prevent JIT error (gh-2145)
 		// hasOwn isn't used here due to false negatives
 		// regarding Nodelist length in IE
+		//声明length为，obj存在，且length是obj的属性，且obj.length可以访问
 		var length = !!obj && "length" in obj && obj.length,
 			type = jQuery.type(obj);
-
+		//obj是函数或者是window对象返回false
 		if (type === "function" || jQuery.isWindow(obj)) {
 			return false;
 		}
-
+		//返回true的情形：obj是数组，或者obj.length可以访问等于0，或者length是个数字，或length大于0且length-1的属性值存在于obj
 		return type === "array" || length === 0 ||
 			typeof length === "number" && length > 0 && (length - 1) in obj;
 	}
+	//选择器函数，是个立即执行函数
 	var Sizzle =
 		/*!
 		 * Sizzle CSS Selector Engine v2.3.3
