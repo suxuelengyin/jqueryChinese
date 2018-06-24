@@ -578,7 +578,7 @@
 		//声明length为，obj存在，且length是obj的属性，且obj.length可以访问
 		var length = !!obj && "length" in obj && obj.length,
 			type = jQuery.type(obj);
-		//obj是函数或者是window对象返回false
+		//obj是函数或者是window对象返回false，函数的length是形参的个数
 		if (type === "function" || jQuery.isWindow(obj)) {
 			return false;
 		}
@@ -599,7 +599,7 @@
 		 * Date: 2016-08-08
 		 */
 		(function (window) {
-
+			//常用声明
 			var i,
 				support,
 				Expr,
@@ -630,6 +630,7 @@
 				classCache = createCache(),
 				tokenCache = createCache(),
 				compilerCache = createCache(),
+				//是否重复，是则变量hasDuplicate为true。返回值为0
 				sortOrder = function (a, b) {
 					if (a === b) {
 						hasDuplicate = true;
@@ -638,6 +639,7 @@
 				},
 
 				// Instance methods
+				//实例方法
 				hasOwn = ({}).hasOwnProperty,
 				arr = [],
 				pop = arr.pop,
@@ -646,6 +648,7 @@
 				slice = arr.slice,
 				// Use a stripped-down indexOf as it's faster than native
 				// https://jsperf.com/thor-indexof-vs-for/5
+				//indexof方法
 				indexOf = function (list, elem) {
 					var i = 0,
 						len = list.length;
@@ -656,25 +659,73 @@
 					}
 					return -1;
 				},
-
+				//状态字符串
 				booleans = "checked|selected|async|autofocus|autoplay|controls|defer|disabled|hidden|ismap|loop|multiple|open|readonly|required|scoped",
 
 				// Regular expressions
+				//正则表达式
 
 				// http://www.w3.org/TR/css3-selectors/#whitespace
+
+				//匹配空白字符和空格，\\x20是16进制空格，\\t制表符,\\r回车符，\\n换行符，\\f分页符（注意本质是字符串
+				//不是正则表达式对象，所以是双斜杠）
+				//可以认为是whitespace=/[\x20\t\r\n\f]/
 				whitespace = "[\\x20\\t\\r\\n\\f]",
 
 				// http://www.w3.org/TR/CSS21/syndata.html#value-def-identifier
+				
+				//jq选择器从字符串的角度，有3种选择器，1是id和class选择，2是属性选择器，3是带有:的伪类选择器	
+				//参考博客https://blog.csdn.net/mole/article/details/43371073			
+
+				/*
+				标识符选择器正则
+					?:非获取匹配（提高性能），三种情况可以匹配，
+					1.\\\\.表示/\\./  匹配\\连接所有字符除了\n，实际上是为了剔除转义字符（凡是\+一个字符的都不能通过）。用.性能好，但不精确
+					2.[\\w-]表示/[\w-]/   匹配包括下划线的任何单词字符和连接符
+					3.[^\0-\\xa0]表示/[^0-\xa0]/  匹配非ASCII编码（剔除了一些控制字符，几乎用不到）
+					总体上完全符合W3C的标准：
+					标识符（包括选择器中的元素名，类和ID）只能包含字符[a- zA-Z0-9]和ISO 10646字符编码U+00A0及以上，
+					再加连字号（-）和下划线（_）；它们不能以数字，或一个连字号后跟数字为开头。
+					它们还可以包含转义字符加任何ISO 10646字符作为一个数字编码。
+				*/
 				identifier = "(?:\\\\.|[\\w-]|[^\0-\\xa0])+",
 
 				// Attribute selectors: http://www.w3.org/TR/selectors/#attribute-selectors
+				/*
+				属性选择器正则（想想jq属性选择器里面的字符串格式，再比对下面的匹配方式，可分为三大部分(空字符匹配不算奥)）
+					1. " + whitespace + "* 表示多次匹配空字符(开始的空字符)
+					2. (" + identifier + ") 匹配标识符选择器并保存（attr属性名）
+					3.（属性选择器种类的匹配）
+						>0.\\[ 左方括号开头 \\] 右方括号结尾
+						>1. ?:" + whitespace +"*匹配多次空字符
+						>2. (" + identifier + ")属性名
+						>3. ([*^$|!~]?=) 匹配 * ^ $ | ~  这些符号,有一个就能匹配到（?的作用，匹配0次或者1次）且必须包含一个=
+							故jq属性选择器种类为|= *= ~= != ^= $= =
+						>4. " + whitespace +"*匹配多次空字符
+						>5. (?:'((?:\\\\.|[^\\\\'])*)'|\"((?:\\\\.|[^\\\\\"])*)\"|(" + identifier + "))|
+							三部分，
+								一是单引号的属性值'',属性值可以是\或者\连接任意非换行字符，或者不是单引号和反斜杠\的值，零次或多次匹配
+								二是双引号属性值"",属性值可以是\或者\连接任意非换行字符，或者不是双引号和反斜杠\的值，零次或多次匹配
+								三是符合标志符的属性值也可通过
+								最后一条|相当于？，表示前三项可有可无
+						>5. " + whitespace +"* 结尾空字符匹配
+				累死我了....不过还挺厉害的正则
+				*/
 				attributes = "\\[" + whitespace + "*(" + identifier + ")(?:" + whitespace +
 					// Operator (capture 2)
 					"*([*^$|!~]?=)" + whitespace +
 					// "Attribute values must be CSS identifiers [capture 5] or strings [capture 3 or capture 4]"
 					"*(?:'((?:\\\\.|[^\\\\'])*)'|\"((?:\\\\.|[^\\\\\"])*)\"|(" + identifier + "))|)" + whitespace +
 					"*\\]",
-
+				//jq的伪类选择器
+				/*
+				1. :冒号起头
+				2. (" + identifier + ") 伪类名称
+				3.(?:\\(( 第一组  | 第二组 | 第三组 )\\)|) 
+					第一组：表示用单引号或双引号括起来的转义符或除反斜杠外的任意字符组合
+					第二组：表示转义字符或不包含反斜杠、圆括号和方括号的任意字符集合或符合属性选择器的字符集合
+					第三组：或者其他除换行符和行结束符外任意集合
+				*/
 				pseudos = ":(" + identifier + ")(?:\\((" +
 					// To reduce the number of selectors needing tokenize in the preFilter, prefer arguments:
 					// 1. quoted (capture 3; capture 4 or capture 5)
