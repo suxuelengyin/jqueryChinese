@@ -11,15 +11,15 @@
  *
  * Date: 2017-03-20T18:59Z
  */
-//自执行匿名函数，参数1：如果Window不是未定义就传入window，如果未定义就是this，参数2：jq主体构造函数
+//自执行匿名函数，参数1：如果Window不是未定义就传入window，如果未定义就是this，参数2：jq构造函数
 (function (global, factory) {
 	// 严格模式
 	"use strict";
 	// 此时的global是window或this对象，factory是jq对象（jq主体最后返回的是jq对象）
-	// 自执行立即判断是否存在commonJs运行环境
+	// 判断是否存在commonJs运行环境（模块系统），模块系统每一个模块都是一个局部作用域
 	if (typeof module === "object" && typeof module.exports === "object") {
 		// 如果存在，判断环境是否支持window.document属性，支持则将jq功能函数集合直接扩展到node.js里面
-		// 如果不支持该属性，抛出错误：jq需要支持window.document，再返回jq对象。
+		// 如果不支持该属性，抛出错误：jq需要支持window.document（至少存在一个全局控制变量）。
 		module.exports = global.document ?
 			factory(global, true) :
 			function (w) {
@@ -33,7 +33,7 @@
 		factory(global);
 	}
 })(typeof window !== "undefined" ? window : this, function (window, noGlobal) {
-	// jq主体开始
+	// jq主体
 	"use strict";
 	// 数组arr
 	var arr = [];
@@ -63,7 +63,7 @@
 	var support = {};
 
 
-	// DOMEval方法。创建script标签，包含指定代码。
+	// DOMEval方法。动态插入脚本并执行
 	function DOMEval(code, doc) {
 		doc = doc || document;
 		var script = doc.createElement("script");
@@ -81,6 +81,7 @@
 		// 版本
 		version = "3.2.1",
 		// jq选择器，jq对象，返回jq原型
+		//每一次调用jq，都会返回新的jq对象，以便于链式调用
 		// Define a local copy of jQuery
 		jQuery = function (selector, context) {
 
