@@ -546,7 +546,7 @@
 		//又加了一个support属性？？？
 		support: support
 	});//扩展结束
-	//Symbol是ES6新定义的第七种数据类型，表示独一无二的值，用以消除魔术字符串再好好不过
+	//Symbol是ES6新定义的第七种数据类型，表示独一无二的值，用以消除魔术字符串再好不过
 	//Symbol.iterator指向对象的默认遍历器（支持的话）
 	if (typeof Symbol === "function") {
 		jQuery.fn[Symbol.iterator] = arr[Symbol.iterator];
@@ -587,7 +587,7 @@
 		return type === "array" || length === 0 ||
 			typeof length === "number" && length > 0 && (length - 1) in obj;
 	}
-	//选择器函数，是个立即执行函数
+	//选择器引擎，是个立即执行函数
 	var Sizzle =
 		/*!
 		 * Sizzle CSS Selector Engine v2.3.3
@@ -690,7 +690,6 @@
 					它们还可以包含转义字符加任何ISO 10646字符作为一个数字编码。
 				*/
 				identifier = "(?:\\\\.|[\\w-]|[^\0-\\xa0])+",
-
 				// Attribute selectors: http://www.w3.org/TR/selectors/#attribute-selectors
 				/*
 				属性选择器正则（想想jq属性选择器里面的字符串格式，再比对下面的匹配方式，可分为三大部分(空字符匹配不算奥)）
